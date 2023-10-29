@@ -98,19 +98,19 @@ def registration_request(request):
             return render(request, 'djangoapp:index', context)
 
 # Update the `get_dealerships` view to render the index page with a list of dealerships
-def get_dealerships(request):
-    context = {}
-    if request.method == "GET":
-        return render(request, 'djangoapp/index.html', context)
 # def get_dealerships(request):
+#     context = {}
 #     if request.method == "GET":
-#         url = "https://karandeepsho-3000.theiadocker-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/dealership"
-#         # Get dealers from the URL
-#         dealerships = get_dealers_from_cf(url)
-#         # Concat all dealer's short name
-#         dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
-#         # Return a list of dealer short name
-#         return HttpResponse(dealer_names)
+#         return render(request, 'djangoapp/index.html', context)
+def get_dealerships(request):
+    if request.method == "GET":
+        url = "https://karandeepsho-3000.theiadocker-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/dealership"
+        # Get dealers from the URL
+        dealerships = get_dealers_from_cf(url)
+        # Concat all dealer's short name
+        dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
+        # Return a list of dealer short name
+        return HttpResponse(dealer_names)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer

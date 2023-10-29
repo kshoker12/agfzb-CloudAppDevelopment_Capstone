@@ -2,13 +2,42 @@ import requests
 import json
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_watson.natural_language_understanding_v1 import Features,SentimentOptions
+import time
+ 
+
+def analyze_review_sentiments(text):
+    url = "https://api.us-east.natural-language-understanding.watson.cloud.ibm.com/instances/704dc5aa-489b-4dfe-a930-38365b1e815d"
+    api_key = "yW4MF9vHUxbK0vlRKXKd30XT_XgI27ena8HumhMsJBXk"
+    authenticator = IAMAuthenticator(api_key)
+    natural_language_understanding = NaturalLanguageUnderstandingV1(version='2021-08-01',authenticator=authenticator)
+    natural_language_understanding.set_service_url(url)
+    response = natural_language_understanding.analyze( text=text+"hello hello hello",features=Features(sentiment=SentimentOptions(targets=[text+"hello hello hello"]))).get_result()
+    label=json.dumps(response, indent=2)
+    label = response['sentiment']['document']['label']
+    
+    
+    return(label)
 
 def get_request(url, **kwargs):
     print(kwargs)
     print("GET from {} ".format(url))
+    api_key = kwargs.get("api_key")
     try:
-        # Call get method of requests library with URL and parameters
-        response = requests.get(url, headers={'Content-Type': 'application/json'},
+        if api_key:
+            # Basic authentication GET
+            params = dict()
+            params["text"] = kwargs["text"]
+            params["version"] = kwargs["version"]
+            params["features"] = kwargs["features"]
+            params["return_analyzed_text"] = kwargs["return_analyzed_text"]
+            response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
+                                    auth=HTTPBasicAuth('apikey', api_key))
+        else:
+            # Call get method of requests library with URL and parameters
+            response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
     except:
         # If any error occurs
@@ -89,6 +118,9 @@ def get_dealer_reviews_from_cf(url, **kwargs):
             # Create a CarDealer object with values in `doc` object
             review_obj = DealerReview(dealership=review_doc["dealership"], name=review_doc["name"], purchase=review_doc["purchase"],
                                    review =review_doc["_rev"], id=review_doc["id"])
+            sentiment = analyze_review_sentiments(review_obj.review)
+            review_obj.sentiment = sentiment
+            print(sentiment)
             results.append(review_obj)
 
     return results
