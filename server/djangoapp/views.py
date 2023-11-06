@@ -104,7 +104,7 @@ def registration_request(request):
 #         return render(request, 'djangoapp/index.html', context)
 def get_dealerships(request):
     if request.method == "GET":
-        url = "https://karandeepsho-3000.theiadocker-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/dealership"
+        url = "https://karandeepsho-3000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/dealership"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
@@ -116,7 +116,7 @@ def get_dealerships(request):
 # Create a `get_dealer_details` view to render the reviews of a dealer
 def get_dealer_details(request, dealer_id):
     if request.method == "GET":
-        url = "https://karandeepsho-5000.theiadocker-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
+        url = "https://karandeepsho-5000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
         dealer_reviews = get_dealer_reviews_from_cf(url, id = dealer_id)
         dealer_names = ' '.join([dealer.name for dealer in dealer_reviews])
         return HttpResponse(dealer_names)
@@ -124,25 +124,23 @@ def get_dealer_details(request, dealer_id):
 # Create a `add_review` view to submit a review
 def add_review(request, dealer_id):
     # if request.user.is_authenticated:
-    if request.method == "POST":
-        url = "https://karandeepsho-5000.theiadocker-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
-        review = {
-            "time": datetime.utcnow().isoformat(),
-            "dealership": dealer_id,
-            "review": "This is a great car dealer",
-            "id": 12, 
-            "name": "Jack", 
-            "review": "good", 
-            "purchase": "purchase", 
-            "purchase_date": "today", 
-            "car_make": "Car-make", 
-            "car_model": "sub", 
-            "car_year": 1020
+    url = "https://karandeepsho-5000.theiadocker-1-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
+    review = {
+        "time": datetime.utcnow().isoformat(),
+        "dealership": dealer_id,
+        "review": "This is a great car dealer",
+        "id": 100, 
+        "short_name": "Jack", 
+        "name": "Jack the Ripper",
+        "purchase": "purchase", 
+        "purchase_date": "today", 
+        "car_make": "Car-make", 
+        "car_model": "sub", 
+        "car_year": 1020
         }
-        json_payload = {
-            "review":review
-        }
-        result = post_request(url, payload = json_payload)
-        print(result)
-        return HttpResponse(result["message"])
+    json_payload = {
+        "review":review
+    }
+    result = post_request(url, payload = json_payload)
+    return HttpResponse(result["message"])
 

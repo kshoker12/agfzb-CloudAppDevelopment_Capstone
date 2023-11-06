@@ -79,4 +79,4 @@ class DealerReview:
         self.id = id
 
     def __str__(self):
-        return "Review: " + self.full_name
+        return "Review: " + self.review
