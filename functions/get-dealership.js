@@ -45,6 +45,7 @@ app.get('/api/dealership', (req, res) => {
             res.status(500).json({ error: 'An error occurred while fetching dealerships.' });
         } else {
             const dealerships = body.docs;
+            print(dealerships)
             res.json(dealerships);
         }
     });

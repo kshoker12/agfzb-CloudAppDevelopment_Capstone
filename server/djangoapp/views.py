@@ -3,7 +3,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
 # from .models import related models
-from .restapis import get_dealers_from_cf, get_dealers_by_state, get_dealer_reviews_from_cf, post_request
+from .models import CarModel
+from .restapis import get_dealers_from_cf, get_dealers_by_state, get_dealer_reviews_from_cf, post_request, get_dealer_by_id
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -49,7 +50,7 @@ def login_request(request):
             return redirect('djangoapp:index')
         else:
             # If not, return to login page again
-            return render(request, 'djangoapp: index', context)
+            return render(request, 'djangoapp/index.html', context)
     else:
         return render(request, 'djangoapp: index', context)
 
@@ -104,7 +105,7 @@ def registration_request(request):
 #         return render(request, 'djangoapp/index.html', context)
 def get_dealerships(request):
     if request.method == "GET":
-        url = "https://karandeepsho-3000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/dealership"
+        url = "https://karandeepsho-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/dealership"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
@@ -120,7 +121,7 @@ def get_dealer_details(request, dealer_id):
     if request.method == "GET":
         context = {}
         
-        url = "https://karandeepsho-5000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
+        url = "https://karandeepsho-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
         dealer_reviews = get_dealer_reviews_from_cf(url, id = dealer_id)
         dealer_names = ' '.join([dealer.name for dealer in dealer_reviews])
         context["reviews"] = dealer_reviews
@@ -130,53 +131,61 @@ def get_dealer_details(request, dealer_id):
 
 
 # Create a `add_review` view to submit a review
-def add_review(request, dealer_id):
-    # if request.user.is_authenticated:
-    url = "https://karandeepsho-5000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
-    review = {
-        "time": datetime.utcnow().isoformat(),
-        "dealership": dealer_id,
-        "review": "This is a awesome car dealer",
-        "id": 1, 
-        "short_name": "Jack", 
-        "name": "Jack the Ripper",
-        "purchase": "purchase", 
-        "purchase_date": "today", 
-        "car_make": "Tesla ", 
-        "car_model": "Tesla Model Y", 
-        "car_year": 2020
-        }
-    json_payload = {
-        "review":review
-    }
-    result = post_request(url, payload = json_payload)
-    print(result)
-    return HttpResponse(result["message"])
 # def add_review(request, dealer_id):
-#     if request.user.is_authenticated:
-#         if request.method == "POST":
-#             url = "https://karandeepsho-5000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
-#             review = {
-#                 "time": datetime.utcnow().isoformat(),
-#                 "dealership": dealer_id,
-#                 "id": request.POST["id"],
-#                 "review": request.POST["review"], 
-#                 "name": request.POST["name"], 
-#                 "purchase": request.POST["purchase"], 
-#                 "purchase_date": request.POST["purchase_date"], 
-#                 "car_make": request.POST["car_make"], 
-#                 "car_model": request.POST["car_model"], 
-#                 "car_year": request.POST["car_year"]
-#             }
+#     # if request.user.is_authenticated:
+#     url = "https://karandeepsho-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
+#     review = {
+#         "time": datetime.utcnow().isoformat(),
+#         "dealership": dealer_id,
+#         "review": "This is a awesome car dealer",
+#         "id": 1, 
+#         "short_name": "Jack", 
+#         "name": "Jack the Ripper",
+#         "purchase": "purchase", 
+#         "purchase_date": "today", 
+#         "car_make": "Tesla ", 
+#         "car_model": "Tesla Model Y", 
+#         "car_year": 2020
+#         }
+#     json_payload = {
+#         "review":review
+#     }
+#     result = post_request(url, payload = json_payload)
+#     print(result)
+#     return HttpResponse(result["message"])
+def add_review(request, dealer_id):
+    if request.user.is_authenticated:
+       
+        if request.method == "GET":
+            url = "https://karandeepsho-3000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/dealership"
+            context = {
+                "cars": CarModel.objects.all(),
+                "dealer": get_dealer_by_id(url, dealer_id=dealer_id),
+            }
+            return render(request, 'djangoapp/add_review.html', context)
+        if request.method == "POST": 
+            url = "https://karandeepsho-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
+            review = {
+                "time": datetime.utcnow().isoformat(),
+                "dealership": dealer_id,
+                "id": request.POST["id"],
+                "review": request.POST["review"], 
+                "name": request.POST["name"], 
+                "purchase": request.POST["purchase"], 
+                "purchase_date": request.POST["purchase_date"], 
+                "car_make": request.POST["car_make"], 
+                "car_model": request.POST["car_model"], 
+                "car_year": request.POST["car_year"]
+            }
     
-#             json_payload = {
-#                 "review":review
-#              }
-#             print(review)
-#             result = post_request(url, payload = json_payload)
-#             return HttpResponse(result["message"])
-#         else: 
-#             return redirect("djangoapp:index")
-#     else: 
-#         return redirect("djangoapp:index")
+            json_payload = {
+                "review":review
+             }
+            print(review)
+            result = post_request(url, payload = json_payload)
+            return HttpResponse(result["message"])
+        else: 
+            return redirect("djangoapp:index")
+    else: 
+        return redirect("djangoapp:index")
 

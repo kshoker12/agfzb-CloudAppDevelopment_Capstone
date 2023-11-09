@@ -7,7 +7,10 @@ import uuid
 # Create your models here.
 class CarMake(models.Model):
     name = models.CharField(null = False, max_length=30)
-    description = models.CharField(null = False, max_length=1000)
+    description = models.CharField(null = True, max_length=1000)
+
+    class Meta:
+        db_table = 'djangoapp_carmake'
 
     def __str__(self):
         return "Name: " + self.name + "," + " Description: " + self.description
@@ -34,6 +37,9 @@ class CarModel(models.Model):
     dealer_id = models.IntegerField()
     model_type = models.CharField(choices=CAR_TYPES, default=SEDAN, max_length=30)
     year = models.DateField(null=True)
+
+    class Meta:
+        db_table = 'djangoapp_carmodel'
 
     def __str__(self):
         return "Model: " + self.model_type
