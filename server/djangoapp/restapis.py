@@ -9,14 +9,24 @@ import time
  
 
 def analyze_review_sentiments(text):
+    # Watson NLU configuration
     url = "https://api.us-east.natural-language-understanding.watson.cloud.ibm.com/instances/704dc5aa-489b-4dfe-a930-38365b1e815d"
     api_key = "yW4MF9vHUxbK0vlRKXKd30XT_XgI27ena8HumhMsJBXk"
     authenticator = IAMAuthenticator(api_key)
-    natural_language_understanding = NaturalLanguageUnderstandingV1(version='2021-08-01',authenticator=authenticator)
+    natural_language_understanding = NaturalLanguageUnderstandingV1(
+        version= '2021-08-01', authenticator=authenticator)
     natural_language_understanding.set_service_url(url)
-    response = natural_language_understanding.analyze( text=text+"hello hello hello",features=Features(sentiment=SentimentOptions(targets=[text+"hello hello hello"]))).get_result()
-    label=json.dumps(response, indent=2)
-    label = response['sentiment']['document']['label']
+
+    try:
+        response = natural_language_understanding.analyze(text=text, features=Features(
+            sentiment=SentimentOptions())).get_result()
+        label = response["sentiment"]["document"]["label"]
+    except:
+        label = "neutral"
+
+    print(label)
+
+    return label
     
     
     return(label)
@@ -48,9 +58,6 @@ def get_request(url, **kwargs):
     return json_data
 
 def post_request(url, payload, **kwargs):
-    print(kwargs)
-    print("POST to {} ".format(url))
-    print(payload)
     response = requests.post(url, params=kwargs, json=payload)
     status_code = response.status_code
     print("With status {} ".format(status_code))
@@ -111,7 +118,6 @@ def get_dealers_by_state(url, **kwargs):
 # Create a get_dealer_reviews_from_cf method to get reviews by dealer id from a cloud function
 # def get_dealer_by_id_from_cf(url, dealerId):
 # - Call get_request() with specified arguments
-# - Parse JSON results into a DealerView object list
 def get_dealer_reviews_from_cf(url, **kwargs):
     results = []
     # Call get_request with a URL parameter
@@ -124,10 +130,12 @@ def get_dealer_reviews_from_cf(url, **kwargs):
         for review in reviews:
             # Get its content in `doc` object
             review_doc = review
-            print(review)
+            print(review_doc)
             # Create a CarDealer object with values in `doc` object
             review_obj = DealerReview(dealership=review_doc["dealership"], name=review_doc["name"], purchase=review_doc["purchase"],
-                                   review =review_doc["_rev"], id=review_doc["id"])
+                                   review =review_doc["review"], id=review_doc["id"])
+            print("REVIEW_OBJ")
+            print(review_obj.review)
             sentiment = analyze_review_sentiments(review_obj.review)
             review_obj.sentiment = sentiment
             print(sentiment)
