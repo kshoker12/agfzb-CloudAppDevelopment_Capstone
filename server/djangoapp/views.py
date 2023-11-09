@@ -110,45 +110,73 @@ def get_dealerships(request):
         # Concat all dealer's short name
         dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
         # Return a list of dealer short name
-        return HttpResponse(dealer_names)
+        context = {"dealerships":dealerships}
+        print(dealerships)
+        return render(request, "djangoapp/index.html", context)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
 def get_dealer_details(request, dealer_id):
     if request.method == "GET":
+        context = {}
+        
         url = "https://karandeepsho-5000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
         dealer_reviews = get_dealer_reviews_from_cf(url, id = dealer_id)
         dealer_names = ' '.join([dealer.name for dealer in dealer_reviews])
-        return HttpResponse(dealer_names)
+        context["reviews"] = dealer_reviews
+        context["dealer_id"] = dealer_id
+        return render(request, 'djangoapp/dealer_details.html', context)
 
 
 
 # Create a `add_review` view to submit a review
 def add_review(request, dealer_id):
-    if request.user.is_authenticated:
-        if request.method == "POST":
-            url = "https://karandeepsho-5000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
-            review = {
-                "time": datetime.utcnow().isoformat(),
-                "dealership": dealer_id,
-                "id": request.POST["id"],
-                "review": request.POST["review"], 
-                "name": request.POST["name"], 
-                "purchase": request.POST["purchase"], 
-                "purchase_date": request.POST["purchase_date"], 
-                "car_make": request.POST["car_make"], 
-                "car_model": request.POST["car_model"], 
-                "car_year": request.POST["car_year"]
-            }
+    # if request.user.is_authenticated:
+    url = "https://karandeepsho-5000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
+    review = {
+        "time": datetime.utcnow().isoformat(),
+        "dealership": dealer_id,
+        "review": "This is a awesome car dealer",
+        "id": 1, 
+        "short_name": "Jack", 
+        "name": "Jack the Ripper",
+        "purchase": "purchase", 
+        "purchase_date": "today", 
+        "car_make": "Tesla ", 
+        "car_model": "Tesla Model Y", 
+        "car_year": 2020
+        }
+    json_payload = {
+        "review":review
+    }
+    result = post_request(url, payload = json_payload)
+    print(result)
+    return HttpResponse(result["message"])
+# def add_review(request, dealer_id):
+#     if request.user.is_authenticated:
+#         if request.method == "POST":
+#             url = "https://karandeepsho-5000.theiadocker-3-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
+#             review = {
+#                 "time": datetime.utcnow().isoformat(),
+#                 "dealership": dealer_id,
+#                 "id": request.POST["id"],
+#                 "review": request.POST["review"], 
+#                 "name": request.POST["name"], 
+#                 "purchase": request.POST["purchase"], 
+#                 "purchase_date": request.POST["purchase_date"], 
+#                 "car_make": request.POST["car_make"], 
+#                 "car_model": request.POST["car_model"], 
+#                 "car_year": request.POST["car_year"]
+#             }
     
-            json_payload = {
-                "review":review
-             }
-            print(review)
-            result = post_request(url, payload = json_payload)
-            return HttpResponse(result["message"])
-        else: 
-            return redirect("djangoapp:index")
-    else: 
-        return redirect("djangoapp:index")
+#             json_payload = {
+#                 "review":review
+#              }
+#             print(review)
+#             result = post_request(url, payload = json_payload)
+#             return HttpResponse(result["message"])
+#         else: 
+#             return redirect("djangoapp:index")
+#     else: 
+#         return redirect("djangoapp:index")
 

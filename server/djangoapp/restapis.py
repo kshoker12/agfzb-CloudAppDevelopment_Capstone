@@ -129,13 +129,30 @@ def get_dealer_reviews_from_cf(url, **kwargs):
         # For each dealer object
         for review in reviews:
             # Get its content in `doc` object
-            review_doc = review
-            print(review_doc)
-            # Create a CarDealer object with values in `doc` object
-            review_obj = DealerReview(dealership=review_doc["dealership"], name=review_doc["name"], purchase=review_doc["purchase"],
-                                   review =review_doc["review"], id=review_doc["id"])
-            print("REVIEW_OBJ")
-            print(review_obj.review)
+            review_content = review["review"]
+            id = review["_id"]
+            name = review["name"]
+            purchase = review["purchase"]
+            dealership = review["dealership"]
+
+            try:
+                # These values may be missing
+                car_make = review["car_make"]
+                car_model = review["car_model"]
+                car_year = review["car_year"]
+                purchase_date = review["purchase_date"]
+
+                # Creating a review object
+                review_obj = DealerReview(dealership=dealership, id=id, name=name, 
+                                          purchase=purchase, review=review_content, car_make=car_make, 
+                                          car_model=car_model, car_year=car_year, purchase_date=purchase_date
+                                          )
+
+            except KeyError:
+                print("Something is missing from this review. Using default values.")
+                # Creating a review object with some default values
+                review_obj = DealerReview(
+                    dealership=dealership, id=id, name=name, purchase=purchase, review=review_content)
             sentiment = analyze_review_sentiments(review_obj.review)
             review_obj.sentiment = sentiment
             print(sentiment)
