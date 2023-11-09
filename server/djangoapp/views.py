@@ -165,25 +165,37 @@ def add_review(request, dealer_id):
             return render(request, 'djangoapp/add_review.html', context)
         if request.method == "POST": 
             url = "https://karandeepsho-5000.theiadocker-2-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai/api/review"
-            review = {
-                "time": datetime.utcnow().isoformat(),
-                "dealership": dealer_id,
-                "id": request.POST["id"],
-                "review": request.POST["review"], 
-                "name": request.POST["name"], 
-                "purchase": request.POST["purchase"], 
-                "purchase_date": request.POST["purchase_date"], 
-                "car_make": request.POST["car_make"], 
-                "car_model": request.POST["car_model"], 
-                "car_year": request.POST["car_year"]
-            }
+            # review = {
+            #     "time": datetime.utcnow().isoformat(),
+            #     "dealership": dealer_id,
+            #     "id": request.POST["id"],
+            #     "review": request.POST["review"], 
+            #     "name": request.POST["name"], 
+            #     "purchase": request.POST["purchase"], 
+            #     "purchase_date": request.POST["purchase_date"], 
+            #     "car_make": request.POST["car_make"], 
+            #     "car_model": request.POST["car_model"], 
+            #     "car_year": request.POST["car_year"]
+            # }
+            form = request.POST
+            review = dict()
+            review["id"] = 5
+            review["name"] = f"{request.user.first_name} {request.user.last_name}"
+            review["dealership"] = dealer_id
+            review["review"] = form["content"]
+            review["purchase"] = form.get("purchasecheck")
+            if review["purchase"]:
+                review["purchase_date"] = datetime.strptime(form.get("purchasedate"), "%m/%d/%Y").isoformat(),
+            car = CarModel.objects.get(pk=form["car"])
+            review["car_make"] = car.carMake.name
+            review["car_model"] = car.name
+            review["car_year"] = car.year.strftime("%Y")
     
             json_payload = {
                 "review":review
              }
-            print(review)
             result = post_request(url, payload = json_payload)
-            return HttpResponse(result["message"])
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
         else: 
             return redirect("djangoapp:index")
     else: 
